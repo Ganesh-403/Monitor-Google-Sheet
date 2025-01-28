@@ -25,6 +25,7 @@ jobs:
 
       - name: Run monitoring script
         env:
-          SERVICE_ACCOUNT_JSON: ${{ secrets.SERVICE_ACCOUNT_JSON }}  # Pass the secret as an environment variable
+          SERVICE_ACCOUNT_JSON: ${{ secrets.SERVICE_ACCOUNT_JSON }}
+          SHEET_NAME: ${{ secrets.SHEET_NAME }}  # Pass the sheet name as an environment variable
         run: |
           python monitor_latest_entry.py
