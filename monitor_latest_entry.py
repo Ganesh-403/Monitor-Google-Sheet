@@ -4,6 +4,10 @@ from google.oauth2.service_account import Credentials
 import pandas as pd
 import os
 import json
+import logging
+
+# Set up logging
+logging.basicConfig(level=logging.INFO)
 
 def check_latest_entry():
     SCOPES = ["https://www.googleapis.com/auth/spreadsheets", "https://www.googleapis.com/auth/drive"]
@@ -36,24 +40,32 @@ def check_latest_entry():
     # Retry logic in case of quota limit or other temporary errors
     for attempt in range(retries):
         try:
+            # Log the sheet name and start fetching data
+            logging.info(f"Checking latest entry for sheet: {sheet_name}")
+
             # Open the sheet by name and get the last entry
             sheet = client.open(sheet_name).sheet1
             df = pd.DataFrame(sheet.get_all_records())  # Convert to DataFrame
-            return tuple(df.iloc[-1].values)  # Get the last row as a tuple
+            
+            logging.info("Data fetched, processing the latest entry...")
+            latest_entry = tuple(df.iloc[-1].values)  # Get the last row as a tuple
+
+            logging.info(f"Latest entry: {latest_entry}")
+            return latest_entry
         except gspread.exceptions.APIError as e:
             # Handle quota exceeded error and retry with exponential backoff
             if e.response.status_code == 429:  # Quota exceeded error
-                print(f"Quota exceeded, retrying... Attempt {attempt + 1}/{retries}")
+                logging.warning(f"Quota exceeded, retrying... Attempt {attempt + 1}/{retries}")
                 time.sleep(backoff_time)  # Wait before retrying
                 backoff_time *= 2  # Exponential backoff
             else:
                 # Raise other API-related errors
                 raise e
         except Exception as e:
-            print(f"An unexpected error occurred: {e}")
+            logging.error(f"An unexpected error occurred: {e}")
             return None  # Return None if any other errors occur
 
-    print("Max retry attempts reached. Quota still exceeded.")
+    logging.error("Max retry attempts reached. Quota still exceeded.")
     return None  # Return None if retries are exhausted
 
 def monitor_spreadsheet(check_interval=60):
@@ -63,14 +75,15 @@ def monitor_spreadsheet(check_interval=60):
         latest_entry = check_latest_entry()
 
         if latest_entry and latest_entry != last_seen:
-            print("New entry detected:")
-            print(latest_entry)
+            logging.info("New entry detected:")
+            logging.info(f"Entry: {latest_entry}")
             last_seen = latest_entry
         elif latest_entry is None:
-            print("No new entry detected or unable to fetch data.")
+            logging.warning("No new entry detected or unable to fetch data.")
         
         time.sleep(check_interval)
 
 # Main function entry point, with environment variables
 if __name__ == "__main__":
+    logging.info("Starting the spreadsheet monitoring process...")
     monitor_spreadsheet(check_interval=60)
