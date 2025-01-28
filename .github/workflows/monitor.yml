@@ -24,4 +24,7 @@ jobs:
           pip install gspread pandas google-auth
 
       - name: Run monitoring script
-        run: python monitor_latest_entry.py
+        env:
+          SERVICE_ACCOUNT_JSON: ${{ secrets.SERVICE_ACCOUNT_JSON }}  # Pass the secret as an environment variable
+        run: |
+          python monitor_latest_entry.py
