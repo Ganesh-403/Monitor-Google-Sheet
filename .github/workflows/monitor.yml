@@ -5,27 +5,28 @@ on:
     branches:
       - main
   schedule:
-    - cron: "*/1 * * * *"  # Runs every minute
+    - cron: '*/1 * * * *'  # Every 1 minute
 
 jobs:
-  monitor:
+  run:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
+      - name: Checkout repository
+        uses: actions/checkout@v2
 
       - name: Set up Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v2
         with:
-          python-version: "3.9"
+          python-version: '3.9'  # You can adjust the Python version as needed
 
       - name: Install dependencies
         run: |
-          pip install gspread pandas google-auth
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt  # Install the necessary dependencies from requirements.txt
 
-      - name: Run monitoring script
+      - name: Set environment variables
         env:
-          SERVICE_ACCOUNT_JSON: ${{ secrets.SERVICE_ACCOUNT_JSON }}
-          SHEET_NAME: ${{ secrets.SHEET_NAME }}  # Pass the sheet name as an environment variable
+          SERVICE_ACCOUNT_JSON: ${{ secrets.SERVICE_ACCOUNT_JSON }}  # The secret containing your service account JSON
+          SHEET_NAME: ${{ secrets.SHEET_NAME }}  # Sheet name stored as a secret (if needed)
         run: |
-          python monitor_latest_entry.py
+          python monitor_latest_entry.py  # Run the Python script
