@@ -25,5 +25,5 @@ def monitor_spreadsheet(sheet_name):
             last_seen = latest_entry
 
 # Usage
-sheet_name = input("Enter the name of the Google Sheet: ")
+sheet_name = os.getenv("SHEET_NAME")  # Get the sheet name from the environment variable
 monitor_spreadsheet(sheet_name)
